@@ -2,7 +2,7 @@ import type { ApplicationFunctionOptions, Probot } from "probot";
 import { CreateServer } from "./server.js";
 import { runMockMergeForPR, applyResolvedCommit } from "./worker.js";
 
-const CHECK_NAME = "sesame-merge-helper";
+const CHECK_NAME = "s3m-merge-helper";
 
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   CreateServer({ getRouter });
