@@ -1,8 +1,8 @@
 import type { ApplicationFunctionOptions, Probot } from "probot";
 import { CreateServer } from "./server.js";
-import { runMockMergeForPR, applyResolvedCommit } from "./worker.js";
+import { runS3MMergeForPR, applyResolvedCommit } from "./worker.js";
 
-const CHECK_NAME = "s3m-merge-helper";
+const CHECK_NAME = "merge-helper";
 
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   CreateServer({ getRouter });
@@ -31,8 +31,8 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
       started_at: new Date().toISOString(),
       external_id: externalId,
       output: {
-        title: "Tentando merge semiestruturado (mock)",
-        summary: "O bot vai tentar resolver conflitos e publicar um diff se possível.",
+        title: "Tentando merge semiestruturado",
+        summary: "O Merge Helper vai tentar resolver conflitos e publicar um diff se possível.",
         text: "Aguarde alguns instantes; o link do diff aparecerá quando pronto."
       }
     });
@@ -40,7 +40,7 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
     const checkRunId = created.data.id;
 
     queueMicrotask(async () => {
-      const result = await runMockMergeForPR({ owner, repo, prNumber, headRef, baseRef, headSha, cloneUrl, token });
+      const result = await runS3MMergeForPR({ owner, repo, prNumber, headRef, baseRef, headSha, cloneUrl, token });
 
       if (result.status !== "ok") {
         await context.octokit.rest.checks.update({
@@ -51,7 +51,7 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
           conclusion: "failure",
           completed_at: new Date().toISOString(),
           output: {
-            title: "Não foi possível resolver com mock",
+            title: "Não foi possível resolver os conflitos utilizando o merge semiestruturado",
             summary: result.reason || "Conflitos não resolvidos automaticamente",
             text: ""
           }
@@ -71,12 +71,12 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
         details_url: detailsUrl,
         completed_at: new Date().toISOString(),
         output: {
-          title: "Diff gerado pelo mock",
-          summary: "Revise o diff e clique no botão para aplicar o commit na branch do PR.",
-          text: "O commit será criado pelo bot quando o botão for clicado."
+          title: "Conflitos resolvidos pelo Merge Helper",
+          summary: "Revise o diff e clique no botão para aplicar o commit.",
+          text: "O commit será criado pelo Merge Helper quando o botão for clicado."
         },
         actions: [
-          { label: "Aplicar commit", description: "Cria commit com patch mock", identifier: "apply_fix" }
+          { label: "Aplicar commit", description: "Cria commit gerado pelo Merge Helper", identifier: "apply_fix" }
         ]
       });
     });
@@ -164,14 +164,14 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
       started_at: new Date().toISOString(),
       external_id: externalId,
       output: {
-        title: "Reexecutando merge semiestruturado (mock)",
+        title: "Reexecutando merge semiestruturado",
         summary: "O bot está reprocessando o diff para este PR.",
         text: "Aguarde alguns instantes; o link do diff será atualizado se necessário."
       }
     });
 
     setTimeout(async () => {
-      const result = await runMockMergeForPR({
+      const result = await runS3MMergeForPR({
         owner,
         repo,
         prNumber,
@@ -191,7 +191,7 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
           conclusion: "failure",
           completed_at: new Date().toISOString(),
           output: {
-            title: "Não foi possível resolver com mock",
+            title: "Não foi possível resolver os conflitos utilizando o merge semiestruturado do S3M",
             summary: result.reason || "Conflitos não resolvidos automaticamente",
             text: ""
           }
@@ -211,14 +211,14 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
         details_url: detailsUrl,
         completed_at: new Date().toISOString(),
         output: {
-          title: "Diff gerado pelo mock",
+          title: "Conflitos resolvidos pelo Merge Helper",
           summary: "Revise o diff e clique no botão para aplicar o commit na branch do PR.",
           text: "O commit será criado pelo bot quando o botão for clicado."
         },
         actions: [
           {
             label: "Aplicar commit",
-            description: "Cria commit com patch mock",
+            description: "Cria commit com Merge Helper",
             identifier: "apply_fix"
           }
         ]

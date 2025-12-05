@@ -19,7 +19,7 @@ export function CreateServer({ getRouter }: ApplicationFunctionOptions) {
     router.get("/diff/:key", async (req, res) => {
         try {
             const key = req.params.key; // mesmo key usado no worker
-            const storeDir = path.join(os.tmpdir(), "sesame-merge-helper-diffs");
+            const storeDir = path.join(os.tmpdir(), "s3m-merge-helper-diffs");
             // sanitize leve do key aplicado também na gravação
             const safeKey = String(key).replace(/[^a-zA-Z0-9._#/-]/g, "_");
             const file = path.join(storeDir, `${safeKey}.html`);
