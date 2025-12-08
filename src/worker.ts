@@ -94,7 +94,7 @@ export async function runS3MMergeForPR(args: {
   // salva diff
   const key = `${args.owner}/${args.repo}#${args.prNumber}-${args.headSha}`;
   const storeDir = path.join(os.tmpdir(), "s3m-merge-helper-diffs");
-  const safeKey = key.replace(/[^a-zA-Z0-9._#/-]/g, "_");
+  const safeKey = key.replace(/[^a-zA-Z0-9._\-]/g, "_");
   const file = path.join(storeDir, `${safeKey}.html`);
   await fs.ensureDir(path.dirname(file));
   await fs.writeFile(file, diffHtmlStr, "utf-8");
@@ -112,7 +112,7 @@ export async function runS3MMergeForPR(args: {
   };
   await fs.writeJson(path.join(ws, "metadata.json"), meta, { spaces: 2 });
 
-  return { status: "ok" as const, diffKey: key };
+  return { status: "ok" as const, diffKey: safeKey };
 }
 
 export async function applyResolvedCommit(args: {
@@ -123,7 +123,7 @@ export async function applyResolvedCommit(args: {
   const srcDir = path.join(ws, "src");
   const metaPath = path.join(ws, "metadata.json");
   const key = `${args.owner}/${args.repo}#${args.prNumber}-${args.headSha}`;
-  const safeKey = key.replace(/[^a-zA-Z0-9._#/-]/g, "_");
+  const safeKey = key.replace(/[^a-zA-Z0-9._\-]/g, "_");
 
   // valida workspace existente
   if (!(await fs.pathExists(metaPath))) {
